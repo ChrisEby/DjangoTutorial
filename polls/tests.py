@@ -124,3 +124,13 @@ class QuestionIndexDetailTests(TestCase):
                                            args=(past_question.id,)))
         self.assertContains(response, past_question.question_text,
                             status_code=200)
+
+
+class QuestionVoteTests(TestCase):
+    def test_vote_view_with_invalid_question(self):
+        """
+        The vote view of an invalid question id return a 404 not found.
+        """
+        response = self.client.get(reverse('polls:vote',
+                                           args=(1,)))
+        self.assertEqual(response.status_code, 404)
