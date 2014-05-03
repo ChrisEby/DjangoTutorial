@@ -151,7 +151,7 @@ class ResultsTests(TestCase):
         The results view of a past question.
         """
         past_question = create_question(question_text='Past question.',
-                                        days=5)
+                                        days=-5)
         response = self.client.get(reverse('polls:results',
                                            args=(past_question.id,)))
         self.assertContains(response, past_question.question_text,
