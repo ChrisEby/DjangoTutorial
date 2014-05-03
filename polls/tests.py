@@ -126,6 +126,38 @@ class QuestionIndexDetailTests(TestCase):
                             status_code=200)
 
 
+class ResultsTests(TestCase):
+    def test_results_view_with_invalid_question(self):
+        """
+        The results view of a question that doesn't exist.
+        """
+        response = self.client.get(reverse('polls:results',
+                                           args=(0,)))
+        self.assertEqual(response.status_code, 404)
+
+    def test_results_view_with_future_question(self):
+        """
+        The results view of a future question.
+        """
+        future_question = create_question(question_text='Future question.',
+                                          days=5)
+        response = self.client.get(reverse('polls:results',
+                                           args=(future_question.id,)))
+        self.assertContains(response, future_question.question_text,
+                            status_code=200)
+
+    def test_results_view_with_past_question(self):
+        """
+        The results view of a past question.
+        """
+        past_question = create_question(question_text='Past question.',
+                                        days=5)
+        response = self.client.get(reverse('polls:results',
+                                           args=(past_question.id,)))
+        self.assertContains(response, past_question.question_text,
+                            status_code=200)
+
+
 class QuestionVoteTests(TestCase):
     def test_vote_view_with_invalid_question(self):
         """
@@ -134,3 +166,4 @@ class QuestionVoteTests(TestCase):
         response = self.client.get(reverse('polls:vote',
                                            args=(1,)))
         self.assertEqual(response.status_code, 404)
+
