@@ -167,3 +167,12 @@ class QuestionVoteTests(TestCase):
                                            args=(1,)))
         self.assertEqual(response.status_code, 404)
 
+    def test_vote_view_with_past_question(self):
+        """
+        The vote view of a past question.
+        """
+        past_question = create_question(question_text='Past question.',
+                                        days=-5)
+        response = self.client.get(reverse('polls:vote',
+                                           args=(past_question.id,)))
+        self.assertTrue(response.context['error_message'])
