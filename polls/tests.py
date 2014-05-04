@@ -4,7 +4,7 @@ from django.test import TestCase
 from django.utils import timezone
 from django.core.urlresolvers import reverse
 
-from polls.models import Question
+from polls.models import Question, Choice
 
 
 def create_question(question_text, days):
@@ -16,6 +16,14 @@ def create_question(question_text, days):
     time = timezone.now() + datetime.timedelta(days=days)
     return Question.objects.create(question_text=question_text,
                                    pub_date=time)
+
+
+def create_choice(choice_text, question):
+    """
+    Creates a choice that will be assigned to the specified question.
+    """
+    return Choice.objects.create(question=question,
+                                 choice_text=choice_text, )
 
 
 class QuestionMethodTests(TestCase):
@@ -167,12 +175,39 @@ class QuestionVoteTests(TestCase):
                                            args=(1,)))
         self.assertEqual(response.status_code, 404)
 
-    def test_vote_view_with_past_question(self):
+    def test_vote_view_with_question_without_choices(self):
         """
-        The vote view of a past question.
+        The vote view of a question without choices.
         """
         past_question = create_question(question_text='Past question.',
                                         days=-5)
         response = self.client.get(reverse('polls:vote',
                                            args=(past_question.id,)))
         self.assertTrue(response.context['error_message'])
+
+    def test_vote_view_with_past_question(self):
+        """
+        The vote view of a past question.
+        """
+        past_question = create_question(question_text='Past question.',
+                                        days=-5)
+        create_choice(choice_text='My choice',
+                      question=past_question)
+        response = self.client.post(reverse('polls:vote',
+                                            args=(past_question.id,)),
+                                    {'choice': '1'})
+        self.assertEqual(response.status_code, 302)
+        self.assertTrue(response.url.endswith(reverse('polls:results',
+                                                      args=(past_question.id,))))
+
+
+class ChoiceModelTests(TestCase):
+    def test_choice_str(self):
+        """
+        Tests to make sure that we can get the choice_text back from __str__
+        """
+        question = create_question(question_text='Question.',
+                                   days=-5)
+        choice = create_choice(choice_text='My choice',
+                               question=question)
+        self.assertEqual(str(choice), 'My choice')
